@@ -31,7 +31,7 @@ jobs:
       - name: Export Configmap
         continue-on-error: true # Allow failure, a status update will be sent to source repo
         with:
-          configmap: ${{ steps.set-configmap.outputs.configmap }}
+          configmap_map: ${{ steps.set-configmap.outputs.configmap }}
         id: export-configmap
         uses: unfor19/configmap-action@development
     ### Required outputs - feel free to add your more outputs
