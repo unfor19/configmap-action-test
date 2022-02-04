@@ -14,7 +14,7 @@ on:
         required: true
 
 jobs:
-  test:
+  prepare:
     runs-on: ubuntu-20.04
     name: Test ${{ github.event.inputs.src_repository }}
     steps:
@@ -33,6 +33,34 @@ jobs:
           configmap: ${{ steps.set-configmap.outputs.configmap }}
         id: export-configmap
         uses: unfor19/configmap-action@development
+    ### Required outputs - feel free to add your more outputs
+    ### -----------------------------------------------------
+    outputs:
+      CONFIGMAP: ${{ steps.export-configmap.outputs.CONFIGMAP_MAP }}
+      DEPLOYMENT_ENVIRONMENT: ${{ steps.export-configmap.outputs.CONFIGMAP_SELECTED_KEY }}
+    ### -----------------------------------------------------
+
+  test:
+    runs-on: ubuntu-20.04
+    name: Test ${{ matrix.configmap.DEPLOYMENT_ENVIRONMENT }}
+    ### Add the following block to each job
+    ### -----------------------------------------------------
+    needs:
+      - prepare
+    strategy:
+      matrix:
+        configmap: ${{ fromJSON(needs.prepare.outputs.CONFIGMAP) }}
+    ### -----------------------------------------------------
+    steps:
+      - uses: actions/checkout@v2
+      # Inject relevant variables per step
+      - name: Get env vars
+        env:
+          NODE_ENV: ${{ matrix.configmap.NODE_ENV }}
+          NODE_VERSION: ${{ matrix.configmap.NODE_VERSION }}
+        run: |
+          echo "$NODE_ENV"
+          echo "$NODE_VERSION"
     outputs:
       target_job_status: ${{ job.status }}
 
@@ -40,7 +68,7 @@ jobs:
     name: Update Status Check In Source Repository
     runs-on: ubuntu-20.04
     needs:
-      - test # Change if necessary
+      - test
     if: ${{ always() }}
     steps:
       - name: Status Update Action Repo
