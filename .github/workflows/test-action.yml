@@ -1,0 +1,54 @@
+name: test-action
+
+on:
+  workflow_dispatch:
+    inputs:
+      src_repository:
+        description: Source Repository - {owner}/{repo_name}
+        required: true
+      src_workflow_name:
+        description: Source Workflow Name
+        required: true
+      src_sha:
+        description: Source Repository SHA - GITHUB_SHA
+        required: true
+
+jobs:
+  test:
+    runs-on: ubuntu-20.04
+    name: Test ${{ github.event.inputs.src_repository }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set Configmap
+        id: set-configmap
+        run: |
+          jq . config.json
+          jq -c . config.json
+          echo "::set-output name=CONFIGMAP::$(jq -c . config.json)"      
+      - name: Export Configmap
+        continue-on-error: true # Allow failure, a status update will be sent to source repo
+        with:
+          configmap: ${{ steps.set-configmap.outputs.configmap }}
+        id: export-configmap
+        uses: {{ github.event.inputs.src_repository }}@development
+    outputs:
+      target_job_status: ${{ job.status }}
+
+  update-status-check:
+    name: Update Status Check In Source Repository
+    runs-on: ubuntu-20.04
+    needs:
+      - test # Change if necessary
+    if: ${{ always() }}
+    steps:
+      - name: Status Update Action Repo
+        uses: unfor19/hero-action@master
+        with:
+          action: "status-update"
+          gh_token: ${{ secrets.GH_TOKEN }} # scope: repo + workflow
+          src_repository: ${{ github.event.inputs.src_repository }}
+          src_workflow_name: ${{ github.event.inputs.src_workflow_name }}
+          src_sha: ${{ github.event.inputs.src_sha }}
+          target_repository: ${{ github.repository }}
+          target_job_status: ${{ needs.test.outputs.target_job_status }}
+          target_run_id: ${{ github.run_id }}
