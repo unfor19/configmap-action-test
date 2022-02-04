@@ -13,9 +13,6 @@ on:
         description: Source Repository SHA - GITHUB_SHA
         required: true
 
-env:
-  MATRIX_KEY: |
-
 jobs:
   prepare:
     # Use the action
