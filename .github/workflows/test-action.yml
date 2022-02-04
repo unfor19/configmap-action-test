@@ -15,6 +15,7 @@ on:
 
 jobs:
   prepare:
+    # Use the action
     runs-on: ubuntu-20.04
     if: ${{ always() }}
     name: Test ${{ github.event.inputs.src_repository }}
@@ -38,13 +39,14 @@ jobs:
     ### -----------------------------------------------------
     outputs:
       CONFIGMAP: ${{ steps.export-configmap.outputs.CONFIGMAP_MAP }}
-      DEPLOYMENT_ENVIRONMENT: ${{ steps.export-configmap.outputs.CONFIGMAP_SELECTED_KEY }}
+      CONFIGMAP_SELECTED_KEY: ${{ steps.export-configmap.outputs.CONFIGMAP_SELECTED_KEY }}
     ### -----------------------------------------------------
 
-  test:
+  build:
+    # Test needs.prepare and matrix
     runs-on: ubuntu-20.04
     if: ${{ always() }}
-    name: Test ${{ matrix.configmap.DEPLOYMENT_ENVIRONMENT }}
+    name: Build ${{ matrix.configmap.CONFIGMAP_SELECTED_KEY }}
     ### Add the following block to each job
     ### -----------------------------------------------------
     needs:
@@ -66,11 +68,43 @@ jobs:
     outputs:
       target_job_status: ${{ job.status }}
 
+  deploy:
+    # Test secrets
+    name: Deploy to ${{ needs.prepare.outputs.CONFIGMAP_SELECTED_KEY }}
+    if: ${{ always() }}
+    ### Add the following condition to skip deployments for non-environment branches
+    # if: |
+    #   always() &&
+    #   needs.prepare.outputs.CONFIGMAP_SELECTED_KEY != '' &&
+    #   github.event_name == 'push'
+    ### Add the following block to each job
+    ### -----------------------------------------------------
+    needs:
+      - prepare
+      - build
+    strategy:
+      matrix:
+        configmap: ${{ fromJSON(needs.prepare.outputs.CONFIGMAP) }}
+    env:
+      DEPLOYMENT_ENVIRONMENT: ${{ needs.prepare.outputs.CONFIGMAP_SELECTED_KEY }}
+    ### -----------------------------------------------------
+    steps:
+      - uses: actions/checkout@v2
+      # Inject relevant variables per step
+      - name: Get env vars
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets[matrix.configmap.AWS_ACCESS_KEY_ID_NAME] }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets[matrix.configmap.AWS_SECRET_ACCESS_KEY_NAME] }}
+        run: |
+          echo "Deploying to $DEPLOYMENT_ENVIRONMENT"
+          echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID"
+          echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY"
+
   update-status-check:
     name: Update Status Check In Source Repository
     runs-on: ubuntu-20.04
     needs:
-      - test
+      - deploy
     if: ${{ always() }}
     steps:
       - name: Status Update Action Repo
@@ -82,5 +116,5 @@ jobs:
           src_workflow_name: ${{ github.event.inputs.src_workflow_name }}
           src_sha: ${{ github.event.inputs.src_sha }}
           target_repository: ${{ github.repository }}
-          target_job_status: ${{ needs.test.outputs.target_job_status }}
+          target_job_status: ${{ needs.deploy.outputs.target_job_status }}
           target_run_id: ${{ github.run_id }}
