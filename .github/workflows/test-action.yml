@@ -1,9 +1,6 @@
 name: test-action
 
 on:
-  push:
-    branches:
-      - none
   workflow_dispatch:
     inputs:
       src_repository:
@@ -27,13 +24,13 @@ jobs:
         run: |
           jq . config.json
           jq -c . config.json
-          echo "::set-output name=configmap::$(jq -c . config.json)"      
+          echo "::set-output name=configmap::$(jq -c . config.json)"
       - name: Export Configmap
         continue-on-error: true # Allow failure, a status update will be sent to source repo
         with:
           configmap: ${{ steps.set-configmap.outputs.configmap }}
         id: export-configmap
-        uses: {{ github.event.inputs.src_repository }}@development
+        uses: unfor19/configmap-action@development
     outputs:
       target_job_status: ${{ job.status }}
 
