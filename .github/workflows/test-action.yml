@@ -1,6 +1,9 @@
 name: test-action
 
 on:
+  push:
+    branches:
+      - none
   workflow_dispatch:
     inputs:
       src_repository:
