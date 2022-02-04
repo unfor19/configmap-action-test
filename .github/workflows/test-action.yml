@@ -13,6 +13,9 @@ on:
         description: Source Repository SHA - GITHUB_SHA
         required: true
 
+env:
+  MATRIX_KEY: |
+
 jobs:
   prepare:
     # Use the action
@@ -56,6 +59,8 @@ jobs:
     runs-on: ubuntu-20.04
     if: ${{ always() }}
     name: Build ${{ matrix.configmap.CONFIGMAP_SELECTED_KEY }}
+    strategy:
+      matrix: ${{ jobs.prepare.strategy.matrix }}
     ### Add the following block to each job
     ### -----------------------------------------------------
     needs:
