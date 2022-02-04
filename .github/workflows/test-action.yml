@@ -100,6 +100,8 @@ jobs:
           echo "Deploying to $DEPLOYMENT_ENVIRONMENT"
           echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID"
           echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY"
+    outputs:
+      target_job_status: ${{ job.status }}
 
   update-status-check:
     name: Update Status Check In Source Repository
