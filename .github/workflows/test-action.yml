@@ -19,6 +19,14 @@ jobs:
     runs-on: ubuntu-20.04
     if: ${{ always() }}
     name: Test ${{ github.event.inputs.src_repository }}
+    strategy:
+      matrix:
+        include:
+          - CONFIGMAP_KEY: ""
+          - CONFIGMAP_KEY: default
+          - CONFIGMAP_KEY: development
+          - CONFIGMAP_KEY: production
+          - CONFIGMAP_KEY: staging
     steps:
       - uses: actions/checkout@v2
       - name: Set Configmap
@@ -33,6 +41,7 @@ jobs:
         continue-on-error: true # Allow failure, a status update will be sent to source repo
         with:
           configmap_map: ${{ steps.set-configmap.outputs.configmap }}
+          configmap_key: ${{ matrix.configmap.CONFIGMAP_KEY }}
         id: export-configmap
         uses: unfor19/configmap-action@development
     ### Required outputs - feel free to add your more outputs
