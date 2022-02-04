@@ -24,7 +24,7 @@ jobs:
         run: |
           jq . config.json
           jq -c . config.json
-          echo "::set-output name=CONFIGMAP::$(jq -c . config.json)"      
+          echo "::set-output name=configmap::$(jq -c . config.json)"      
       - name: Export Configmap
         continue-on-error: true # Allow failure, a status update will be sent to source repo
         with:
