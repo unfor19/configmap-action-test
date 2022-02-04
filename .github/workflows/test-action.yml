@@ -18,7 +18,7 @@ jobs:
     # Use the action
     runs-on: ubuntu-20.04
     if: ${{ always() }}
-    name: Test ${{ github.event.inputs.src_repository }}
+    name: Test ${{ matrix.CONFIGMAP_KEY }}
     strategy:
       matrix:
         include:
@@ -41,7 +41,7 @@ jobs:
         continue-on-error: true # Allow failure, a status update will be sent to source repo
         with:
           configmap_map: ${{ steps.set-configmap.outputs.configmap }}
-          configmap_key: ${{ matrix.configmap.CONFIGMAP_KEY }}
+          configmap_key: ${{ matrix.CONFIGMAP_KEY }}
         id: export-configmap
         uses: unfor19/configmap-action@development
     ### Required outputs - feel free to add your more outputs
