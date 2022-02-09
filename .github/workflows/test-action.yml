@@ -42,6 +42,8 @@ jobs:
         with:
           configmap_map: ${{ steps.set-configmap.outputs.configmap }}
           configmap_key: ${{ matrix.CONFIGMAP_KEY }}
+          configmap_default_key_name: "default"
+          configmap_skip_env: "false"
         id: export-configmap
         uses: unfor19/configmap-action@development
     ### Required outputs - feel free to add your more outputs
