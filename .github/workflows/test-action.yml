@@ -27,6 +27,7 @@ jobs:
           - CONFIGMAP_KEY: development
           - CONFIGMAP_KEY: production
           - CONFIGMAP_KEY: staging
+          - CONFIGMAP_KEY: ci/test-branch
     steps:
       - uses: actions/checkout@v2
       - name: Set Configmap
