@@ -119,8 +119,10 @@ jobs:
     name: Update Status Check In Source Repository
     runs-on: ubuntu-20.04
     needs:
+      - prepare
+      - build
       - deploy
-    if: ${{ always() }}
+    # if: ${{ always() }}
     steps:
       - name: Status Update Action Repo
         uses: unfor19/hero-action@master
