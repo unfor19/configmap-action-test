@@ -57,7 +57,7 @@ jobs:
   build:
     # Test needs.prepare and matrix
     runs-on: ubuntu-20.04
-    if: ${{ always() }}
+    # if: ${{ always() }}
     name: Build ${{ matrix.configmap.NODE_VERSION }}
     ### Add the following block to each job
     ### -----------------------------------------------------
@@ -84,7 +84,7 @@ jobs:
     # Test secrets
     runs-on: ubuntu-20.04
     name: Deploy ${{ matrix.configmap.NODE_VERSION }} to ${{ needs.prepare.outputs.CONFIGMAP_SELECTED_KEY }}
-    if: ${{ always() }}
+    # if: ${{ always() }}
     ### Add the following condition to skip deployments for non-environment branches
     # if: |
     #   always() &&
